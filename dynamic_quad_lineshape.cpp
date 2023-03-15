@@ -250,6 +250,7 @@ int main()
     for(i=0;i<np;i++){
         fprintf(fp,"%f %f\n",real(total_FID(i)),imag(total_FID(i)));
     }
+    fprintf(fp,"%s","END");
     fclose(fp);
 
     //writing the spectrum as a SPE file
@@ -267,7 +268,7 @@ int main()
         fprintf(fp,"%f %f\n",real(spectrum(i)),imag(spectrum(i)));
         k++;
     }
-
+    fprintf(fp,"%s","END");
     fclose(fp);
     return 0;
 }
