@@ -6,7 +6,7 @@
 using namespace std;
 #include <vector>
 
-int main()
+int main(int argc, char *argv[])
 {
     char buffer[128], keyword[64], crystal_file[128], input_filename[128];
     int i,j,k,t,counter=0;
@@ -21,8 +21,19 @@ int main()
     printf("NMR spectra of quadrupolar nuclei.\n");
     printf("It comes with no warranty.\n\n");
     printf("written by Frederic A Perras at Ames National Laboratory\n\n");
-    printf("What is the name of your input file?\n");
-    scanf("%s",input_filename);
+
+    if (argc < 2) {
+        FILE *error_file;
+        error_file=fopen("error.txt","a");
+        fprintf(error_file, "\nERROR: Missing input file declaration\n");
+        fclose(error_file);
+        exit(1);
+    }
+
+    else{
+        sprintf(input_filename,"%s",argv[1]);
+    }
+
     char output_filename[strlen(input_filename)-3];
     sprintf(output_filename,"%.*s",strlen(input_filename)-4,input_filename);
 

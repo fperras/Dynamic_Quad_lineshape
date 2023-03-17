@@ -1,0 +1,27 @@
+spin             3.5       ;I=7/2
+lb               2000      ;line broadening in Hz
+Larmor           94.7e6    ;Larmor frequency in Hz
+spinrate         20000     ;MAS frequency in Hz
+sw           	 100000    ;spectral width in Hz
+offset           10000     ;transmitter offset in Hz
+np               512       ;number of points in Hz
+
+crystal_file     rep100    ;crystal file in SIMPSON *.cry form
+gamma_angles     7         ;number of angles for gamma averaging
+
+;each site is defined as follows:
+;site site_intex diso CQ etaQ alpha beta gamma 
+;(each set of exchanging sites is given their own site_index value)
+site 1  100  11.8e6  0.0  0.0    0.0    0.0
+site 1  100  11.8e6  0.0  0.0  109.5  120.0
+site 1  100  11.8e6  0.0  0.0  109.5  240.0
+site 1  100  11.8e6  0.0  0.0  109.5    0.0
+
+;For a dynamic simulation an exchange constant must be given as:
+;kex site_index exchange_rate
+kex  1  1.0e6
+
+;here we add a second, non-motional, site
+site 2 300 10e6 0.5 0 0 0
+
+
