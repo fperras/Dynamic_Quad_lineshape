@@ -200,7 +200,7 @@ int main()
                 FID.setZero();
                 FID(0)=1.;
                 for(i=0;i<njumps;i++){
-                    M(i)=M_temp(i)=0.25;
+                    M(i)=M_temp(i)=1.0;
                 }
                 D_MOL_MAS=D2_matrix(alpha, beta, gamma);
 
