@@ -6,7 +6,11 @@ NMR spectra of half-integer quadrupolar nuclei in the precence of motions. Param
 are written in a SIMPSON-style input file names input.txt, with an example present in 
 the repository.
 
-Different jump orientations are given with an orientation keywork followed by the three
-Euler angles describing this orientation. kex is the hopping rate.
+Sites can be added with individual chemical shift, CQ, eta, and tensor orientation and these
+can be dynamically linked by giving them the same site index. This enables for the simultaneous
+simulation of multiple sites with different sets of motions, or none at all.
+
+The linux version in the bin directory uses an argument for the name of the input file as it is
+intended to be run remotely.
 
 The program uses OpenMP parallelization 
