@@ -146,10 +146,40 @@ int main()
     }//done reading input file
 
     double w0=vL*2*Pi;
+
+    if(I==1){
+    for(i=0;i<nsites;i++){
+        njumps.push_back(njumps[i]);
+        RQ0.push_back(null_vector);
+        RQ2.push_back(null_vector);
+        aa.push_back(null_vector);
+        bb.push_back(null_vector);
+        gg.push_back(null_vector);
+        kex.push_back(kex[i]);
+        diso.push_back(null_vector);
+        for(j=0;j<njumps[i];j++){
+            double eq=-2.*sqrt(6.)*Pi/(4.*I*(2*I-1.))*CQ[i][j];
+            RQ0[i][j] = eq*etaQ[i][j]/2.;
+            RQ2[i][j] = sqrt(1.5)*eq;
+            diso[i][j]=2.*Pi*diso[i][j];
+            aa[i][j]=aa[i][j]*Pi/180.;
+            bb[i][j]=bb[i][j]*Pi/180.;
+            gg[i][j]=gg[i][j]*Pi/180.;
+
+            RQ0[i+nsites].push_back(-RQ0[i][j]);
+            RQ2[i+nsites].push_back(-RQ2[i][j]);
+            aa[i+nsites].push_back(aa[i][j]);
+            bb[i+nsites].push_back(bb[i][j]);
+            gg[i+nsites].push_back(gg[i][j]);
+            diso[i+nsites].push_back(diso[i][j]);
+    }}
+    nsites=nsites*2;
+    }
+
+    else{
     for(i=0;i<nsites;i++){
         for(j=0;j<njumps[i];j++){
-            CQ[i][j]=CQ[i][j]*2.*Pi/(4.*I*(2*I-1.));
-            double eq=-sqrt(6./w0)*CQ[i][j];
+            double eq=-2.*sqrt(6./w0)*Pi/(4.*I*(2*I-1.))*CQ[i][j];
             RQ0[i][j] = eq/2.*etaQ[i][j]/sqrt(6.);
             RQ2[i][j] = eq/2.;
             diso[i][j]=2.*Pi*diso[i][j];
@@ -157,6 +187,7 @@ int main()
             bb[i][j]=bb[i][j]*Pi/180.;
             gg[i][j]=gg[i][j]*Pi/180.;
     }}
+    }
 
     //reading the crystal file
     FILE *cry;
@@ -244,7 +275,11 @@ int main()
                     R2 = D_MAS_LAB*D_MOL_MAS*D_PAS_MOL*R_Q;
 
                     //Calculating the quadrupole shift
-                    vCS =diso[site][i]*vL/1000000.-offset*2.*Pi+(4.*I*(I+1.)-3.)* (2*(real(R2(1))*real(R2(3))-imag(R2(1))*imag(R2(3)))+ (real(R2(0))*real(R2(4))- imag(R2(0))*imag(R2(4))));
+                    if(I==1)
+                        vCS =diso[site][i]*vL/1000000.-offset*2.*Pi+  real(R2(2)); //I=1
+                    else
+                        vCS =diso[site][i]*vL/1000000.-offset*2.*Pi+  (4.*I*(I+1.)-3.)* (2*(real(R2(1))*real(R2(3))-imag(R2(1))*imag(R2(3)))+ (real(R2(0))*real(R2(4))- imag(R2(0))*imag(R2(4)))); //CT for I=N/2
+
                     Omega(i,i)=vCS*1i*dwell;
                 }
                 Prop=Omega+K;
