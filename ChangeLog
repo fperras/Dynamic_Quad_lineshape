@@ -1,0 +1,14 @@
+05/09/2024
+
+You can now define the exchange matrix directly if you have multi-modal motions
+For instance, for 4 site hop dynamics the universal keyword: 
+
+kex 1 1.0e9
+
+Can be replaced by the explicit exchange matrix:
+
+kex_mat 1 
+-3.0e9 1.0e9 1.0e9 1.0e9
+1.0e9 -3.0e9 1.0e9 1.0e9
+1.0e9 1.0e9 -3.0e9 1.0e9
+1.0e9 1.0e9 1.0e9 -3.0e9
