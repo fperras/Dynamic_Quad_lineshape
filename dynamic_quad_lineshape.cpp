@@ -14,10 +14,14 @@ int main()
     std::vector< std::vector<double> > aa,bb,gg,CQ,etaQ,diso,RQ0,RQ2;
     std::vector<double> kex, null_vector;
     std::vector<int> njumps;
+    std::vector<int> kex_define;
+
+    std::vector< std::vector< std::vector<double> > > kex_mat;
+
     double offset=0., vL=94.7e6, dwell = 0.00001, sw=100000., lb=250,I=3.5, wr = 12500. *2.*Pi, magic_angle = acos(sqrt(1./3.));;
     FILE *input, *fp;
 
-    printf("This program is for the simulation of static and MAS\n");
+    printf("This program is for the simulation of dynamic static and MAS\n");
     printf("NMR spectra of quadrupolar nuclei.\n");
     printf("It comes with no warranty.\n\n");
     printf("written by Frederic A Perras at Ames National Laboratory\n\n");
@@ -29,7 +33,7 @@ int main()
     input=fopen(input_filename,"r");
     if(input==NULL){
         FILE *error_file;
-        error_file=fopen("error.txt","w");
+        error_file=fopen("errors.txt","w");
         fprintf(error_file, "\nERROR: Input file  not found\n");
         fclose(error_file);
         exit(1);
@@ -46,7 +50,7 @@ int main()
             if(site>nsites){
                 FILE *error_file;
                 error_file=fopen("errors.txt","a");
-                fprintf(error_file, "\nERROR: Sites should be introduced in chronological order\n", crystal_file);
+                fprintf(error_file, "\nERROR: Sites should be introduced in chronological order\n");
                 fclose(error_file);
                 exit(1);
             }
@@ -60,7 +64,9 @@ int main()
                 bb.push_back(null_vector);
                 gg.push_back(null_vector);
                 kex.push_back(0.);
+                kex_mat.push_back(std::vector< std::vector<double> >());
                 njumps.push_back(0);
+                kex_define.push_back(0);
                 nsites++;
             }
             diso[site].push_back(0.);
@@ -100,7 +106,7 @@ int main()
              if(site>nsites){
                 FILE *error_file;
                 error_file=fopen("errors.txt","a");
-                fprintf(error_file, "\nERROR: Sites should be introduced in chronological order\n", crystal_file);
+                fprintf(error_file, "\nERROR: Sites should be introduced in chronological order\n");
                 fclose(error_file);
                 exit(1);
             }
@@ -143,6 +149,56 @@ int main()
             sprintf(crystal_file,"%s.cry",crystal_file);
             sprintf(keyword,"void");
         }
+
+        else if(strcmp(keyword, "kex_mat")==0){
+            int site,junk;
+            sscanf(buffer,"%s %d",keyword, &site);
+            site=site-1;
+             if(site>nsites){
+                FILE *error_file;
+                error_file=fopen("errors.txt","a");
+                fprintf(error_file, "\nERROR: Sites should be introduced in chronological order\n");
+                fclose(error_file);
+                exit(1);
+            }
+
+            kex_define[site]=1;
+            kex_mat[site].resize(njumps[site], std::vector<double>(njumps[site],0.));
+            int pos, cur;
+            for(int iii=0;iii<njumps[site];iii++){
+                fgets(buffer, sizeof(buffer), input);
+                sscanf(buffer,"%lf %n",&kex_mat[site][iii][0],&pos);
+                for(int jjj=1;jjj<njumps[site];jjj++){
+                    sscanf(buffer+pos,"%lf %n",&kex_mat[site][iii][jjj],&cur);
+                    pos+=cur;
+                }
+            }
+
+            double kex_check, kex_check2=0.;
+            for(int iii=0;iii<njumps[site];iii++){
+                kex_check=0.;
+                for(int jjj=0;jjj<njumps[site];jjj++){
+                    kex_check+=kex_mat[site][iii][jjj];
+                    kex_check2+=kex_mat[site][iii][jjj];
+                }
+                if(kex_check!=0.){
+                    FILE *error_file;
+                    error_file=fopen("errors.txt","w");
+                    fprintf(error_file, "\nERROR: invalid exchange matrix\n");
+                    fclose(error_file);
+                    exit(1);
+                }
+            }
+            if(kex_check2!=0.){
+                FILE *error_file;
+                error_file=fopen("errors.txt","w");
+                fprintf(error_file, "\nERROR: invalid exchange matrix\n");
+                fclose(error_file);
+                exit(1);
+            }
+
+            sprintf(keyword,"void");
+        }
     }//done reading input file
 
     double w0=vL*2*Pi;
@@ -156,6 +212,8 @@ int main()
         bb.push_back(null_vector);
         gg.push_back(null_vector);
         kex.push_back(kex[i]);
+        kex_mat.push_back(kex_mat[i]);
+        kex_define.push_back(kex_define[i]);
         diso.push_back(null_vector);
         for(j=0;j<njumps[i];j++){
             double eq=-2.*sqrt(6.)*Pi/(4.*I*(2*I-1.))*CQ[i][j];
@@ -220,17 +278,55 @@ int main()
     total_FID.setZero();
     total_FID(0)=n_orient*gamma_steps*nsites;
 
+ /*   if(wr==0){
+        gamma_steps=1;
+        magic_angle=0.;
+    }
+
+    else{
+        return 0;
+    }*/
+
     #pragma omp parallel private(i,j,k,t)
     {
     for(int site=0;site<nsites;site++){
         //Exchange matrix
         Eigen::MatrixXcd K(njumps[site],njumps[site]);
-        for(i=0;i<njumps[site];i++){
-            K(i,i)=kex[site]*dwell*(1.-1.*njumps[site]);
-            for(j=i+1;j<njumps[site];j++){
-                K(i,j)=K(j,i)=kex[site]*dwell;
+
+        if(kex_define[site]){
+            for(i=0;i<njumps[site];i++){
+                for(j=0;j<njumps[site];j++){
+                    K(i,j)=K(j,i)=kex_mat[site][i][j]*dwell;
+                }
             }
         }
+
+        else{
+            for(i=0;i<njumps[site];i++){
+                K(i,i)=kex[site]*dwell*(1.-1.*njumps[site]);
+                for(j=i+1;j<njumps[site];j++){
+                    K(i,j)=K(j,i)=kex[site]*dwell;
+                }
+            }
+        }
+
+  /*      for(i=0;i<njumps[site];i++){
+            for(j=0;j<njumps[site];j++){
+                printf("%lf  ",K(i,j));
+            }
+            printf("\n");
+        }
+        system("PAUSE");
+
+        for(i=0;i<njumps[site];i++){
+            for(j=0;j<njumps[site];j++){
+                printf("%lf  ",kex_mat[site][i][j]);
+            }
+            printf("\n");
+        }
+        system("PAUSE");*/
+
+
 
         //variable declarations
         double alpha, beta, gamma, vCS;
