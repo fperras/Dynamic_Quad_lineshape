@@ -190,7 +190,7 @@ int main(int argc, char *argv[])
                 kex_check=0.;
                 for(int jjj=0;jjj<njumps[site];jjj++){
                     kex_check+=kex_mat[site][iii][jjj];
-                    kex_check2+=kex_mat[site][iii][jjj];
+                    kex_check2+=kex_mat[site][jjj][iii];
                 }
                 if(kex_check!=0.){
                     FILE *error_file;

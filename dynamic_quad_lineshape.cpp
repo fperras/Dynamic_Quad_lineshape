@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <iostream>
 #include "wigner_complex.h"
 #include "unsupported/Eigen/FFT"
 #include "unsupported/Eigen/MatrixFunctions"
@@ -177,9 +178,10 @@ int main()
             double kex_check, kex_check2=0.;
             for(int iii=0;iii<njumps[site];iii++){
                 kex_check=0.;
+                kex_check2=0.;
                 for(int jjj=0;jjj<njumps[site];jjj++){
                     kex_check+=kex_mat[site][iii][jjj];
-                    kex_check2+=kex_mat[site][iii][jjj];
+                    kex_check2+=kex_mat[site][jjj][iii];
                 }
                 if(kex_check!=0.){
                     FILE *error_file;
@@ -378,6 +380,7 @@ int main()
 
                     Omega(i,i)=vCS*1i*dwell;
                 }
+
                 Prop=Omega+K;
                 M_temp=Prop.exp()*M;
                 FID(t)=0.;
